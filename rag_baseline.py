@@ -96,7 +96,7 @@ class ChunkExtractor:
                 grouped_chunks.append(curr_chunk)
                 curr_chunk = raw_chunks[i]
         grouped_chunks.append(curr_chunk)
-        print(f"raw: {len(raw_chunks)}, grouped: {len(grouped_chunks)}, average: {len(raw_chunks)/len(grouped_chunks)}")
+        #print(f"raw: {len(raw_chunks)}, grouped: {len(grouped_chunks)}, average: {len(raw_chunks)/len(grouped_chunks)}")
         return interaction_id, grouped_chunks
 
     def extract_chunks(self, batch_interaction_ids, batch_search_results):
