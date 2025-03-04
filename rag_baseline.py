@@ -34,8 +34,8 @@ VLLM_GPU_MEMORY_UTILIZATION = 0.85 # TUNE THIS VARIABLE depending on the number 
 # Sentence Transformer Parameters
 SENTENTENCE_TRANSFORMER_BATCH_SIZE = 32 # TUNE THIS VARIABLE depending on the size of your embedding model and GPU mem available
 
-MAX_TOKENS_PER_CHUNK = 50
-SLIDING_WINDOW_OVERLAP = 25
+MAX_TOKENS_PER_CHUNK = 150
+SLIDING_WINDOW_OVERLAP = 75
 #### CONFIG PARAMETERS END---
 
 class ChunkExtractor:
