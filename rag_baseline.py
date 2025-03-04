@@ -36,7 +36,14 @@ SENTENTENCE_TRANSFORMER_BATCH_SIZE = 32 # TUNE THIS VARIABLE depending on the si
 #### CONFIG PARAMETERS END---
 
 class ChunkExtractor:
-
+    def __init__(self):
+        # Load a sentence transformer model optimized for sentence embeddings, using CUDA if available.
+        self.sentence_model = SentenceTransformer(
+            "all-MiniLM-L6-v2",
+            device=torch.device(
+                "cuda" if torch.cuda.is_available() else "cpu"
+            ),
+        )
     @ray.remote
     def _extract_chunks(self, interaction_id, html_source):
         """
@@ -75,14 +82,9 @@ class ChunkExtractor:
         
         grouped_chunks = []
         
-        sentence_model = SentenceTransformer(
-            "all-MiniLM-L6-v2",
-            device=torch.device(
-                "cuda" if torch.cuda.is_available() else "cpu"
-            ),
-        )
+        
         threshold = 0.4
-        embeddings = sentence_model.encode(
+        embeddings = self.sentence_model.encode(
             sentences=raw_chunks,
             normalize_embeddings=True,
             batch_size=SENTENTENCE_TRANSFORMER_BATCH_SIZE,
