@@ -72,7 +72,7 @@ class ChunkExtractor:
         chunks = []
         for i in range(0, len(tokens), SLIDING_WINDOW_OVERLAP):
             chunk_tokens = tokens[i:i + MAX_TOKENS_PER_CHUNK]
-            chunk_text = self.tokenizer.convert_tokens_to_string(chunk_tokens)
+            chunk_text = self.tokenizer.decode(chunk_tokens)
             chunks.append(chunk_text)
 
         return interaction_id, chunks
