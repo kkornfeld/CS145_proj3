@@ -90,7 +90,7 @@ class ChunkExtractor:
         
         curr_chunk = ""
         for i in range(1, len(embeddings)):
-            if (embeddings[i-1] * embeddings[i]) > threshold:
+            if np.dot(embeddings[i-1], embeddings[i]) > threshold:
                 curr_chunk += raw_chunks[i]
             else:
                 grouped_chunks.append(curr_chunk)
