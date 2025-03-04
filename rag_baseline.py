@@ -70,8 +70,8 @@ class ChunkExtractor:
         # Initialize a list to store sentences
         
         chunks = []
-        for i in range(0, len(tokens), SLIDING_WINDOW_OVERLAP):
-            chunk_tokens = tokens[i:i + MAX_TOKENS_PER_CHUNK]
+        for i in range(0, len(token_ids), SLIDING_WINDOW_OVERLAP):
+            chunk_tokens = token_ids[i:i + MAX_TOKENS_PER_CHUNK]
             chunk_text = self.tokenizer.decode(chunk_tokens)
             chunks.append(chunk_text)
 
