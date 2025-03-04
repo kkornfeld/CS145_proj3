@@ -65,14 +65,17 @@ class ChunkExtractor:
         _, offsets = text_to_sentences_and_offsets(text)
 
         # Initialize a list to store sentences
-        chunks = []
+        raw_chunks = []
 
         # Iterate through the list of offsets and extract sentences
         for start, end in offsets:
             # Extract the sentence and limit its length
             sentence = text[start:end][:MAX_CONTEXT_SENTENCE_LENGTH]
-            chunks.append(sentence)
-
+            raw_chunks.append(sentence)
+            
+        chunks = []
+        for i in range(len(raw_chunks) - 2):
+            chunks.append(raw_chunks[i] + " " + raw_chunks[i + 1] + " " + raw_chunks[i + 2])
         return interaction_id, chunks
 
     def extract_chunks(self, batch_interaction_ids, batch_search_results):
