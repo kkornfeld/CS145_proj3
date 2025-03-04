@@ -81,7 +81,7 @@ class ChunkExtractor:
                 "cuda" if torch.cuda.is_available() else "cpu"
             ),
         )
-        threshold = 0.5
+        threshold = 0.4
         embeddings = sentence_model.encode(
             sentences=raw_chunks,
             normalize_embeddings=True,
