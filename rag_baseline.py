@@ -9,7 +9,6 @@ import vllm
 from blingfire import text_to_sentences_and_offsets
 from bs4 import BeautifulSoup
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 
 from openai import OpenAI
 
@@ -91,7 +90,7 @@ class ChunkExtractor:
         
         curr_chunk = ""
         for i in range(1, len(embeddings)):
-            if cosine_similarity(embeddings[i-1], embeddings[i])[0][0] > threshold:
+            if (embeddings[i-1] * embeddings[i]).sum(1) > threshold:
                 curr_chunk += raw_chunks[i]
             else:
                 grouped_chunks.append(curr_chunk)
