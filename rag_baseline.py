@@ -66,7 +66,7 @@ class ChunkExtractor:
             # Return a list with empty string when no text is extracted
             return interaction_id, [""]
 
-        tokens = self.tokenizer(text)
+        token_ids = self.tokenizer.encode(text, add_special_tokens=False)   
         # Initialize a list to store sentences
         
         chunks = []
