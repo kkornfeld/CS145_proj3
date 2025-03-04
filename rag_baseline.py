@@ -9,6 +9,7 @@ import vllm
 from blingfire import text_to_sentences_and_offsets
 from bs4 import BeautifulSoup
 from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 
 from openai import OpenAI
 
@@ -72,11 +73,26 @@ class ChunkExtractor:
             # Extract the sentence and limit its length
             sentence = text[start:end][:MAX_CONTEXT_SENTENCE_LENGTH]
             raw_chunks.append(sentence)
-            
-        chunks = []
-        for i in range(len(raw_chunks) - 2):
-            chunks.append(raw_chunks[i] + " " + raw_chunks[i + 1] + " " + raw_chunks[i + 2])
-        return interaction_id, chunks
+        
+        grouped_chunks = []
+        
+        threshold = 0.7
+        embeddings = self.sentence_model.encode(
+            sentences=raw_chunks,
+            normalize_embeddings=True,
+            batch_size=SENTENTENCE_TRANSFORMER_BATCH_SIZE,
+        )
+        
+        curr_chunk = ""
+        for i in range(1, len(embeddings)):
+            if cosine_similarity(embeddings[i-1], embeddings[i])[0][0] > threshold:
+                curr_chunk += raw_chunks[i]
+            else:
+                grouped_chunks.append(curr_chunk)
+                curr_chunk = raw_chunks[i]
+        grouped_chunks.append(curr_chunk)
+        print(f"raw: {len(raw_chunks)}, grouped: {len(grouped_chunks)}, average: {len(raw_chunks)/len(grouped_chunks)}")
+        return interaction_id, grouped_chunks
 
     def extract_chunks(self, batch_interaction_ids, batch_search_results):
         """
