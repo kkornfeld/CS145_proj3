@@ -76,8 +76,14 @@ class ChunkExtractor:
         
         grouped_chunks = []
         
+        sentence_model = SentenceTransformer(
+            "all-MiniLM-L6-v2",
+            device=torch.device(
+                "cuda" if torch.cuda.is_available() else "cpu"
+            ),
+        )
         threshold = 0.7
-        embeddings = self.sentence_model.encode(
+        embeddings = sentence_model.encode(
             sentences=raw_chunks,
             normalize_embeddings=True,
             batch_size=SENTENTENCE_TRANSFORMER_BATCH_SIZE,
