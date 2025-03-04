@@ -9,6 +9,7 @@ import vllm
 from blingfire import text_to_sentences_and_offsets
 from bs4 import BeautifulSoup
 from sentence_transformers import SentenceTransformer
+from transformers import AutoTokenizer
 
 from openai import OpenAI
 
@@ -33,10 +34,14 @@ VLLM_GPU_MEMORY_UTILIZATION = 0.85 # TUNE THIS VARIABLE depending on the number 
 # Sentence Transformer Parameters
 SENTENTENCE_TRANSFORMER_BATCH_SIZE = 32 # TUNE THIS VARIABLE depending on the size of your embedding model and GPU mem available
 
+MAX_TOKENS_PER_CHUNK = 50
+SLIDING_WINDOW_OVERLAP = 25
 #### CONFIG PARAMETERS END---
 
 class ChunkExtractor:
-
+    def __init__(self):
+        self.tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
+    
     @ray.remote
     def _extract_chunks(self, interaction_id, html_source):
         """
@@ -61,43 +66,16 @@ class ChunkExtractor:
             # Return a list with empty string when no text is extracted
             return interaction_id, [""]
 
-        # Extract offsets of sentences from the text
-        _, offsets = text_to_sentences_and_offsets(text)
-
+        tokens = self.tokenizer(text)
         # Initialize a list to store sentences
-        raw_chunks = []
+        
+        chunks = []
+        for i in range(0, len(tokens), SLIDING_WINDOW_OVERLAP):
+            chunk_tokens = tokens[i:i + MAX_TOKENS_PER_CHUNK]
+            chunk_text = self.tokenizer.convert_tokens_to_string(chunk_tokens)
+            chunks.append(chunk_text)
 
-        # Iterate through the list of offsets and extract sentences
-        for start, end in offsets:
-            # Extract the sentence and limit its length
-            sentence = text[start:end][:MAX_CONTEXT_SENTENCE_LENGTH]
-            raw_chunks.append(sentence)
-        
-        grouped_chunks = []
-        
-        sentence_model = SentenceTransformer(
-            "all-MiniLM-L6-v2",
-            device=torch.device(
-                "cuda" if torch.cuda.is_available() else "cpu"
-            ),
-        )
-        threshold = 0.4
-        embeddings = sentence_model.encode(
-            sentences=raw_chunks,
-            normalize_embeddings=True,
-            batch_size=SENTENTENCE_TRANSFORMER_BATCH_SIZE,
-        )
-        
-        curr_chunk = ""
-        for i in range(1, len(embeddings)):
-            if np.dot(embeddings[i-1], embeddings[i]) > threshold:
-                curr_chunk += raw_chunks[i]
-            else:
-                grouped_chunks.append(curr_chunk)
-                curr_chunk = raw_chunks[i]
-        grouped_chunks.append(curr_chunk)
-        #print(f"raw: {len(raw_chunks)}, grouped: {len(grouped_chunks)}, average: {len(raw_chunks)/len(grouped_chunks)}")
-        return interaction_id, grouped_chunks
+        return interaction_id, chunks
 
     def extract_chunks(self, batch_interaction_ids, batch_search_results):
         """
