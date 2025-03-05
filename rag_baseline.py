@@ -34,8 +34,8 @@ VLLM_GPU_MEMORY_UTILIZATION = 0.85 # TUNE THIS VARIABLE depending on the number 
 # Sentence Transformer Parameters
 SENTENTENCE_TRANSFORMER_BATCH_SIZE = 32 # TUNE THIS VARIABLE depending on the size of your embedding model and GPU mem available
 
-MAX_TOKENS_PER_CHUNK = 150
-SLIDING_WINDOW_OVERLAP = 75
+MAX_TOKENS_PER_CHUNK = 50
+SLIDING_WINDOW_STEP = 25
 #### CONFIG PARAMETERS END---
 
 class ChunkExtractor:
@@ -70,11 +70,12 @@ class ChunkExtractor:
         # Initialize a list to store sentences
         
         chunks = []
-        for i in range(0, len(token_ids), SLIDING_WINDOW_OVERLAP):
+        for i in range(0, len(token_ids), SLIDING_WINDOW_STEP):
             chunk_tokens = token_ids[i:i + MAX_TOKENS_PER_CHUNK]
             chunk_text = self.tokenizer.decode(chunk_tokens)
             chunks.append(chunk_text)
 
+        
         return interaction_id, chunks
 
     def extract_chunks(self, batch_interaction_ids, batch_search_results):
@@ -348,7 +349,28 @@ class RAGModel:
             
             references = references[:MAX_CONTEXT_REFERENCES_LENGTH]
             # Limit the length of references to fit the model's input size.
+            user_message = """
+            You are an AI language model tasked with providing highly accurate responses based strictly on known and verified information.
 
+            **Important Instructions**:
+            1. **DO NOT** make up facts, statistics, names, or technical details that are not explicitly known.
+            2. If you are uncertain or lack enough reliable information, **respond with**: "I don't know."
+            3. Your response should be **concise, factual, and sourced when applicable**.
+            4. Prioritize **known knowledge** over inference.
+            5. **DO NOT** speculate or assume facts beyond what is clearly supported.
+
+            **Guidelines for Answering**:
+            - If asked about factual topics, respond **only if you are certain**.
+            - If the question involves **numbers, statistics, or sources**, only provide them if **verified**.
+            - If a question is **ambiguous**, answer "I don't know" rather than guessing.
+
+            **Penalty Avoidance**:
+            - You are **penalized more** for incorrect or fabricated information.
+            - You are **penalized less** for answering "I don't know" if the answer is uncertain.
+
+            Respond carefully.
+            """
+        
             user_message += f"{references}\n------\n\n"
             user_message 
             user_message += f"Using only the references listed above, answer the following question: \n"
