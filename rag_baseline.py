@@ -286,11 +286,11 @@ class RAGModel:
             dense_scores[dense_indices[0]] = 1.0
             
             if bm25_scores.max() > 0:
-                bm25_scores = bm25_scores / bm25_scores.max()
+                bm25_scores = bm25_scores / bm25_scores.max()      
             hybrid_scores = BM25_WEIGHT * bm25_scores + (1 - BM25_WEIGHT) * dense_scores
             ranked_indices = np.argsort(-hybrid_scores)[:NUM_CONTEXT_SENTENCES]
             batch_retrieval_results.append(chunks[i] for i in ranked_indices)
-            
+        batch_retrieval_results = list(batch_retrieval_results)
         # Prepare formatted prompts from the LLM        
         formatted_prompts = self.format_prompts(queries, query_times, batch_retrieval_results)
 
