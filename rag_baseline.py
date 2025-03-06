@@ -38,7 +38,7 @@ SENTENTENCE_TRANSFORMER_BATCH_SIZE = 32 # TUNE THIS VARIABLE depending on the si
 
 MAX_TOKENS_PER_CHUNK = 50
 SLIDING_WINDOW_STEP = 25
-BM25_WEIGHT = 0.75
+DENSE_COEFFICIENT = 0.3
 #### CONFIG PARAMETERS END---
 
 class ChunkExtractor:
@@ -258,11 +258,6 @@ class RAGModel:
         chunks, chunk_interaction_ids = self.chunk_extractor.extract_chunks(
             batch_interaction_ids, batch_search_results
         )
-        
-        tokenized_chunks = [chunk.split() for chunk in chunks]
-
-        # Initialize BM25
-        bm25 = BM25Okapi(tokenized_chunks)
 
         chunk_embeddings = self.calculate_embeddings(chunks)
 
@@ -276,22 +271,27 @@ class RAGModel:
         batch_retrieval_results = []
         for _idx, interaction_id in enumerate(batch_interaction_ids):
             query = queries[_idx]
-            tokenized_query = query.split()
-            bm25_scores = np.array(bm25.get_scores(tokenized_query))
             query_time = query_times[_idx]
             query_embedding = query_embeddings[_idx]
+            relevant_chunks_mask = chunk_interaction_ids == interaction_id
+
+            # Filter out the said chunks and corresponding embeddings
+            relevant_chunks = chunks[relevant_chunks_mask]
+            relevant_chunks_embeddings = chunk_embeddings[relevant_chunks_mask]
+
+            # Calculate cosine similarity between query and chunk embeddings,
+            cosine_scores = (relevant_chunks_embeddings * query_embedding).sum(1)
+            
+            
             query_embedding = np.array(query_embedding).reshape(1, -1)
             _, dense_indices = faiss_index.search(query_embedding, NUM_CONTEXT_SENTENCES)
             dense_scores = np.zeros(len(chunks))
             dense_scores[dense_indices[0]] = 1.0
-            
-            if bm25_scores.max() > 0:
-                bm25_scores = bm25_scores / bm25_scores.max()
-            
-            print("BM25 scores: ", bm25_scores)
-            print("Dense scores: ", dense_scores)
-            hybrid_scores = BM25_WEIGHT * bm25_scores + (1 - BM25_WEIGHT) * dense_scores
-            retrieval_results = chunks[(-hybrid_scores).argsort()[:NUM_CONTEXT_SENTENCES]]
+            relevant_dense_scores = dense_scores[relevant_chunks_mask]
+            print("relevant_dense_scores", relevant_dense_scores)
+            print("cosine_scores", cosine_scores)
+            hybrid_scores = cosine_scores + DENSE_COEFFICIENT * relevant_dense_scores
+            retrieval_results = relevant_chunks[(-hybrid_scores).argsort()[:NUM_CONTEXT_SENTENCES]]
             batch_retrieval_results.append(retrieval_results)
         # Prepare formatted prompts from the LLM        
         formatted_prompts = self.format_prompts(queries, query_times, batch_retrieval_results)
