@@ -288,6 +288,8 @@ class RAGModel:
             if bm25_scores.max() > 0:
                 bm25_scores = bm25_scores / bm25_scores.max()
             
+            print("BM25 scores: ", bm25_scores)
+            print("Dense scores: ", dense_scores)
             hybrid_scores = BM25_WEIGHT * bm25_scores + (1 - BM25_WEIGHT) * dense_scores
             retrieval_results = chunks[(-hybrid_scores).argsort()[:NUM_CONTEXT_SENTENCES]]
             batch_retrieval_results.append(retrieval_results)
