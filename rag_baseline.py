@@ -275,9 +275,9 @@ class RAGModel:
         # Retrieve top matches for the whole batch
         batch_retrieval_results = []
         for _idx, interaction_id in enumerate(batch_interaction_ids):
+            query = queries[_idx]
             tokenized_query = query.split()
             bm25_scores = np.array(bm25.get_scores(tokenized_query))
-            query = queries[_idx]
             query_time = query_times[_idx]
             query_embedding = query_embeddings[_idx]
             _, dense_indices = self.faiss_index.search(query_embedding, NUM_CONTEXT_SENTENCES)
