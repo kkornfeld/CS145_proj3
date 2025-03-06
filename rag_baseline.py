@@ -34,8 +34,8 @@ VLLM_GPU_MEMORY_UTILIZATION = 0.85 # TUNE THIS VARIABLE depending on the number 
 # Sentence Transformer Parameters
 SENTENTENCE_TRANSFORMER_BATCH_SIZE = 32 # TUNE THIS VARIABLE depending on the size of your embedding model and GPU mem available
 
-MAX_TOKENS_PER_CHUNK = 150
-SLIDING_WINDOW_STEP = 75
+MAX_TOKENS_PER_CHUNK = 50
+SLIDING_WINDOW_STEP = 25
 #### CONFIG PARAMETERS END---
 
 class ChunkExtractor:
@@ -175,7 +175,7 @@ class RAGModel:
 
         # Load a sentence transformer model optimized for sentence embeddings, using CUDA if available.
         self.sentence_model = SentenceTransformer(
-            "all-MiniLM-L6-v2",
+            "all-mpnet-base-v2",
             device=torch.device(
                 "cuda" if torch.cuda.is_available() else "cpu"
             ),
