@@ -10,6 +10,8 @@ from blingfire import text_to_sentences_and_offsets
 from bs4 import BeautifulSoup
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer
+import faiss
+from rank_bm25 import BM25Okapi
 
 from openai import OpenAI
 
@@ -36,6 +38,7 @@ SENTENTENCE_TRANSFORMER_BATCH_SIZE = 32 # TUNE THIS VARIABLE depending on the si
 
 MAX_TOKENS_PER_CHUNK = 50
 SLIDING_WINDOW_STEP = 25
+BM25_WEIGHT = 0.5
 #### CONFIG PARAMETERS END---
 
 class ChunkExtractor:
@@ -175,7 +178,7 @@ class RAGModel:
 
         # Load a sentence transformer model optimized for sentence embeddings, using CUDA if available.
         self.sentence_model = SentenceTransformer(
-            "multi-qa-MiniLM-L6-cos-v1",
+            "all-MiniLM-L6-v2",
             device=torch.device(
                 "cuda" if torch.cuda.is_available() else "cpu"
             ),
@@ -255,38 +258,38 @@ class RAGModel:
         chunks, chunk_interaction_ids = self.chunk_extractor.extract_chunks(
             batch_interaction_ids, batch_search_results
         )
+        
+        tokenized_chunks = [chunk.split() for chunk in chunks]
 
-        # Calculate all chunk embeddings
+        # Initialize BM25
+        bm25 = BM25Okapi(tokenized_chunks)
+
         chunk_embeddings = self.calculate_embeddings(chunks)
 
+        # Build FAISS index for fast dense retrieval
+        faiss_index = faiss.IndexFlatL2(chunk_embeddings.shape[1])
+        faiss_index.add(chunk_embeddings)
+        
         # Calculate embeddings for queries
         query_embeddings = self.calculate_embeddings(queries)
 
         # Retrieve top matches for the whole batch
         batch_retrieval_results = []
         for _idx, interaction_id in enumerate(batch_interaction_ids):
+            tokenized_query = query.split()
+            bm25_scores = np.array(bm25.get_scores(tokenized_query))
             query = queries[_idx]
             query_time = query_times[_idx]
             query_embedding = query_embeddings[_idx]
-
-            # Identify chunks that belong to this interaction_id
-            relevant_chunks_mask = chunk_interaction_ids == interaction_id
-
-            # Filter out the said chunks and corresponding embeddings
-            relevant_chunks = chunks[relevant_chunks_mask]
-            relevant_chunks_embeddings = chunk_embeddings[relevant_chunks_mask]
-
-            # Calculate cosine similarity between query and chunk embeddings,
-            cosine_scores = (relevant_chunks_embeddings * query_embedding).sum(1)
-
-            # and retrieve top-N results.
-            retrieval_results = relevant_chunks[
-                (-cosine_scores).argsort()[:NUM_CONTEXT_SENTENCES]
-            ]
+            _, dense_indices = self.faiss_index.search(query_embedding, NUM_CONTEXT_SENTENCES)
+            dense_scores = np.zeros(len(chunks[_idx]))
+            dense_scores[dense_indices[0]] = 1.0
             
-            # You might also choose to skip the steps above and 
-            # use a vectorDB directly.
-            batch_retrieval_results.append(retrieval_results)
+            if bm25_scores.max() > 0:
+                bm25_scores = bm25_scores / bm25_scores.max()
+            hybrid_scores = BM25_WEIGHT * bm25_scores + (1 - BM25_WEIGHT) * dense_scores
+            ranked_indices = np.argsort(-hybrid_scores)[:NUM_CONTEXT_SENTENCES]
+            batch_retrieval_results.append([(hybrid_scores[i], self.docs[i]) for i in ranked_indices])
             
         # Prepare formatted prompts from the LLM        
         formatted_prompts = self.format_prompts(queries, query_times, batch_retrieval_results)
