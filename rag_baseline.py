@@ -175,7 +175,7 @@ class RAGModel:
 
         # Load a sentence transformer model optimized for sentence embeddings, using CUDA if available.
         self.sentence_model = SentenceTransformer(
-            "all-mpnet-base-v2",
+            "bge-large-en",
             device=torch.device(
                 "cuda" if torch.cuda.is_available() else "cpu"
             ),
