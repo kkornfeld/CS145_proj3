@@ -282,7 +282,7 @@ class RAGModel:
             query_embedding = query_embeddings[_idx]
             query_embedding = np.array(query_embedding).reshape(1, -1)
             _, dense_indices = faiss_index.search(query_embedding, NUM_CONTEXT_SENTENCES)
-            dense_scores = np.zeros(len(chunks[_idx]))
+            dense_scores = np.zeros(len(chunks))
             dense_scores[dense_indices[0]] = 1.0
             
             if bm25_scores.max() > 0:
