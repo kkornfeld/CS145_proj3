@@ -292,7 +292,7 @@ class RAGModel:
             batch_retrieval_results.append(chunks[i] for i in ranked_indices)
         batch_retrieval_results = list(batch_retrieval_results)
         # Prepare formatted prompts from the LLM        
-        formatted_prompts = self.format_prompts(queries, query_times, batch_retrieval_results)
+        formatted_prompts = self.format_prompts(queries, query_times, list(batch_retrieval_results))
 
         # Generate responses via vllm
         # note that here self.batch_size = 1
