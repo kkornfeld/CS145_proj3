@@ -288,8 +288,6 @@ class RAGModel:
             dense_scores = np.zeros(len(chunks))
             dense_scores[dense_indices[0]] = 1.0
             relevant_dense_scores = dense_scores[relevant_chunks_mask]
-            print("relevant_dense_scores", relevant_dense_scores)
-            print("cosine_scores", cosine_scores)
             hybrid_scores = cosine_scores + DENSE_COEFFICIENT * relevant_dense_scores
             retrieval_results = relevant_chunks[(-hybrid_scores).argsort()[:NUM_CONTEXT_SENTENCES]]
             batch_retrieval_results.append(retrieval_results)
