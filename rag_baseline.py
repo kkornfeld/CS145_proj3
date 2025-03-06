@@ -269,7 +269,8 @@ class RAGModel:
         # Build FAISS index for fast dense retrieval
         faiss_index = faiss.IndexFlatL2(chunk_embeddings.shape[1])
         faiss_index.add(chunk_embeddings)
-        
+        res = faiss.StandardGpuResources()  # Initialize GPU resources
+        index = faiss.index_cpu_to_gpu(res, 0, index)
         # Calculate embeddings for queries
         query_embeddings = self.calculate_embeddings(queries)
 
