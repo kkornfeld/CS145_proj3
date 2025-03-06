@@ -280,7 +280,7 @@ class RAGModel:
             bm25_scores = np.array(bm25.get_scores(tokenized_query))
             query_time = query_times[_idx]
             query_embedding = query_embeddings[_idx]
-            _, dense_indices = self.faiss_index.search(query_embedding, NUM_CONTEXT_SENTENCES)
+            _, dense_indices = faiss_index.search(query_embedding, NUM_CONTEXT_SENTENCES)
             dense_scores = np.zeros(len(chunks[_idx]))
             dense_scores[dense_indices[0]] = 1.0
             
@@ -288,7 +288,7 @@ class RAGModel:
                 bm25_scores = bm25_scores / bm25_scores.max()
             hybrid_scores = BM25_WEIGHT * bm25_scores + (1 - BM25_WEIGHT) * dense_scores
             ranked_indices = np.argsort(-hybrid_scores)[:NUM_CONTEXT_SENTENCES]
-            batch_retrieval_results.append([(hybrid_scores[i], self.docs[i]) for i in ranked_indices])
+            batch_retrieval_results.append([(hybrid_scores[i], chunks[i]) for i in ranked_indices])
             
         # Prepare formatted prompts from the LLM        
         formatted_prompts = self.format_prompts(queries, query_times, batch_retrieval_results)
