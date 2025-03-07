@@ -375,13 +375,10 @@ class RAGModel:
             """
         
             user_message += f"{references}\n------\n\n"
+            user_message += f"Using only the references listed above, answer the following question: \n"
             user_message += f"Current Time: {query_time}\n"
             user_message += f"Question: {query}\n"
-            user_message += f"Step 1: Identify and extract information relevant to the question from the references above.\n"
-            user_message += f"Step 2: Using the extracted information, analyze how it relates to the question.\n"
-            user_message += f"Step 3: Based on the reasoning above, provide a consise answer to the question. \n"
-            user_message += f"Your final response should only consist of the consise answer from Step 3. \n"
-            if question_type == "simple" or question_type == "simple_w_condition" or question_type == "set" or question_type == "comparison":
+            if question_type == "simple" or question_type == "simple_w_condition":
                 user_message += f"NOTE: make your answer as concise as possible, with as little punctuation as possible. It is not necessary to respond in the form of a sentence. Do not include a period at the end of your response. If the answer is a date, format it in YYYY-MM-DD\n"
 
             if self.is_server:
