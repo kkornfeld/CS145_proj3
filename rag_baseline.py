@@ -20,7 +20,7 @@ from tqdm import tqdm
 #### CONFIG PARAMETERS ---
 
 # Define the number of context sentences to consider for generating an answer.
-NUM_CONTEXT_SENTENCES = 10
+NUM_CONTEXT_SENTENCES = 15
 # Set the maximum length for each context sentence (in characters).
 MAX_CONTEXT_SENTENCE_LENGTH = 1000
 # Set the maximum context references length (in characters).
@@ -375,10 +375,11 @@ class RAGModel:
             """
         
             user_message += f"{references}\n------\n\n"
-            user_message 
-            user_message += f"Using only the references listed above, answer the following question: \n"
             user_message += f"Current Time: {query_time}\n"
             user_message += f"Question: {query}\n"
+            user_message += f"Step 1: Identify and extract information relevant to the question from the references above.\n"
+            user_message += f"Step 2: Using the extracted information, analyze how it relates to the question.\n"
+            user_message += f"Step 3: Based on the reasoning above, provide a consise answer to the question. \n"
 
             if self.is_server:
                 # there is no need to wrap the messages into chat when using the server
