@@ -356,22 +356,14 @@ class RAGModel:
             You are an AI language model tasked with providing highly accurate responses based strictly on known and verified information.
 
             **Important Instructions**:
-            1. **DO NOT** make up facts, statistics, names, or technical details that are not explicitly known.
+            1. **DO NOT** make up facts, statistics, names, or technical details that are not explicitly shown in the references.
             2. If you are uncertain or lack enough reliable information, **respond with**: "I don't know."
-            3. Your response should be **concise, factual, and sourced when applicable**.
-            4. Prioritize **known knowledge** over inference.
-            5. **DO NOT** speculate or assume facts beyond what is clearly supported.
-
-            **Guidelines for Answering**:
-            - If asked about factual topics, respond **only if you are certain**.
-            - If the question involves **numbers, statistics, or sources**, only provide them if **verified**.
-            - If a question is **ambiguous**, answer "I don't know" rather than guessing.
+            3. **DO NOT** speculate or assume facts beyond what is clearly supported.
 
             **Penalty Avoidance**:
             - You are **penalized more** for incorrect or fabricated information.
             - You are **penalized less** for answering "I don't know" if the answer is uncertain.
 
-            Respond carefully.
             """
         
             user_message += f"{references}\n------\n\n"
