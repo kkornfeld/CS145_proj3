@@ -48,6 +48,9 @@ def evaluate_predictions(results, eval_model):
             by_type[question_type] = {"n_correct": 0, "n_miss": 0, "n_correct_exact": 0, "total": 0}
         if static_or_dynamic not in by_static:
             by_static[static_or_dynamic] = {"n_correct": 0, "n_miss": 0, "n_correct_exact": 0, "total": 0}
+            
+        by_type[question_type]["total"] += 1
+        by_static[static_or_dynamic]["total"] += 1
         
         if "i don't know" in prediction_lowercase:
             n_miss += 1
@@ -62,8 +65,6 @@ def evaluate_predictions(results, eval_model):
             by_type[question_type]["n_correct"] += 1
             by_static[static_or_dynamic]["n_correct"] += 1
             continue
-        by_type[question_type]["total"] += 1
-        by_static[static_or_dynamic]["total"] += 1
         # else use llm evaluator to eval
         response = eval_model.evaluate(query, ground_truth, prediction)
         llm_evaluation_logs.append({"query": query, "ground_truth": ground_truth, "prediction": prediction, "response": response, "question_type": question_type, "static_or_dynamic": static_or_dynamic})
@@ -84,7 +85,7 @@ def evaluate_predictions(results, eval_model):
         "total": n,
     }
     by_type_results = []
-    for type in by_type:
+    for type in by_type:    
         by_type_results.append({
             "type": type,
             "score": (2 * by_type[type]["n_correct"] + by_type[type]["n_miss"]) / by_type[type]["total"] - 1,
