@@ -23,7 +23,7 @@ def load_data_in_batches(dataset_path, batch_size, split=-1):
 
     def initialize_batch():
         """ Helper function to create an empty batch. """
-        return {"interaction_id": [], "question_type": [], "query": [], "search_results": [], "query_time": [], "answer": []}
+        return {"interaction_id": [], "static_or_dynamic": [], "question_type": [], "query": [], "search_results": [], "query_time": [], "answer": []}
 
     try:
         with bz2.open(dataset_path, "rt") as file:
@@ -75,8 +75,11 @@ def generate_predictions(dataset_path, model, split):
         queries.extend(batch["query"])
         ground_truths.extend(batch_ground_truths)
         predictions.extend(batch_predictions)
-
-    return queries, ground_truths, predictions
+        question_types = []
+        question_types.extend(batch["question_type"])
+        static_or_dynamic = []
+        static_or_dynamic.extend(batch["static_or_dynamic"])
+    return queries, ground_truths, predictions, question_types, static_or_dynamic
 
 
 if __name__ == "__main__":
@@ -140,8 +143,8 @@ if __name__ == "__main__":
     os.makedirs(output_directory, exist_ok=True)
 
     # Generate predictions
-    queries, ground_truths, predictions = generate_predictions(dataset_path, model, split)
+    queries, ground_truths, predictions, question_types, static_or_dynamic = generate_predictions(dataset_path, model, split)
 
     # save predictions
-    json.dump({"queries": queries, "ground_truths": ground_truths, "predictions": predictions},
+    json.dump({"queries": queries, "ground_truths": ground_truths, "predictions": predictions, "question_types": question_types, "static_or_dynamic": static_or_dynamic},
               open(os.path.join(output_directory, "predictions.json"), "w"), indent=4)

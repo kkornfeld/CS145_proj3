@@ -292,7 +292,8 @@ class RAGModel:
             retrieval_results = relevant_chunks[(-hybrid_scores).argsort()[:NUM_CONTEXT_SENTENCES]]
             batch_retrieval_results.append(retrieval_results)
         # Prepare formatted prompts from the LLM        
-        formatted_prompts = self.format_prompts(queries, query_times, batch_retrieval_results)
+        
+        formatted_prompts = self.format_prompts(queries, query_times, batch_retrieval_results, batch["question_type"])
 
         # Generate responses via vllm
         # note that here self.batch_size = 1
@@ -325,7 +326,7 @@ class RAGModel:
 
         return answers
 
-    def format_prompts(self, queries, query_times, batch_retrieval_results=[]):
+    def format_prompts(self, queries, query_times, batch_retrieval_results=[], question_types=[]):
         """
         Formats queries, corresponding query_times and retrieval results using the chat_template of the model.
             
@@ -340,7 +341,7 @@ class RAGModel:
         for _idx, query in enumerate(queries):
             query_time = query_times[_idx]
             retrieval_results = batch_retrieval_results[_idx]
-
+            question_type = question_types[_idx]
             user_message = ""
             references = ""
             
@@ -372,6 +373,8 @@ class RAGModel:
             user_message += f"Step 1: Identify and extract information relevant to the question from the references above.\n"
             user_message += f"Step 2: Using the extracted information, analyze how it relates to the question.\n"
             user_message += f"Step 3: Based on the reasoning above, provide a consise answer to the question. \n"
+            if question_type == "simple" or question_type == "simple_w_condition" or question_type == "set" or question_type == "comparison":
+                user_message += f"NOTE: make your answer as concise as possible, with as little punctuation as possible. Do not include a period at the end of your response. If the answer is a date, format it in YYYY-MM-DD\n"
 
             if self.is_server:
                 # there is no need to wrap the messages into chat when using the server
