@@ -11,7 +11,6 @@ from bs4 import BeautifulSoup
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer
 import faiss
-from rank_bm25 import BM25Okapi
 
 from openai import OpenAI
 
@@ -20,7 +19,7 @@ from tqdm import tqdm
 #### CONFIG PARAMETERS ---
 
 # Define the number of context sentences to consider for generating an answer.
-NUM_CONTEXT_SENTENCES = 15
+NUM_CONTEXT_SENTENCES = 25
 # Set the maximum length for each context sentence (in characters).
 MAX_CONTEXT_SENTENCE_LENGTH = 1000
 # Set the maximum context references length (in characters).
@@ -357,14 +356,22 @@ class RAGModel:
             You are an AI language model tasked with providing highly accurate responses based strictly on known and verified information.
 
             **Important Instructions**:
-            1. **DO NOT** make up facts, statistics, names, or technical details that are not explicitly shown in the references.
+            1. **DO NOT** make up facts, statistics, names, or technical details that are not explicitly known.
             2. If you are uncertain or lack enough reliable information, **respond with**: "I don't know."
-            3. **DO NOT** speculate or assume facts beyond what is clearly supported.
+            3. Your response should be **concise, factual, and sourced when applicable**.
+            4. Prioritize **known knowledge** over inference.
+            5. **DO NOT** speculate or assume facts beyond what is clearly supported.
+
+            **Guidelines for Answering**:
+            - If asked about factual topics, respond **only if you are certain**.
+            - If the question involves **numbers, statistics, or sources**, only provide them if **verified**.
+            - If a question is **ambiguous**, answer "I don't know" rather than guessing.
 
             **Penalty Avoidance**:
             - You are **penalized more** for incorrect or fabricated information.
             - You are **penalized less** for answering "I don't know" if the answer is uncertain.
 
+            Respond carefully.
             """
         
             user_message += f"{references}\n------\n\n"
@@ -374,7 +381,7 @@ class RAGModel:
             user_message += f"Step 2: Using the extracted information, analyze how it relates to the question.\n"
             user_message += f"Step 3: Based on the reasoning above, provide a consise answer to the question. \n"
             if question_type == "simple" or question_type == "simple_w_condition" or question_type == "set" or question_type == "comparison":
-                user_message += f"NOTE: make your answer as concise as possible, with as little punctuation as possible. Do not include a period at the end of your response. If the answer is a date, format it in YYYY-MM-DD\n"
+                user_message += f"NOTE: make your answer as concise as possible, with as little punctuation as possible. It is not necessary to respond in the form of a sentence. Do not include a period at the end of your response. If the answer is a date, format it in YYYY-MM-DD\n"
 
             if self.is_server:
                 # there is no need to wrap the messages into chat when using the server
