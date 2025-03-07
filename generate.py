@@ -65,7 +65,7 @@ def generate_predictions(dataset_path, model, split):
     Returns:
     tuple: A tuple containing lists of queries, ground truths, and predictions.
     """
-    queries, ground_truths, predictions = [], [], []
+    queries, ground_truths, predictions, question_types, static_or_dynamic = [], [], [], [], []
     batch_size = model.get_batch_size()
 
     for batch in tqdm(load_data_in_batches(dataset_path, batch_size, split), desc="Generating predictions"):
@@ -75,9 +75,7 @@ def generate_predictions(dataset_path, model, split):
         queries.extend(batch["query"])
         ground_truths.extend(batch_ground_truths)
         predictions.extend(batch_predictions)
-        question_types = []
         question_types.extend(batch["question_type"])
-        static_or_dynamic = []
         static_or_dynamic.extend(batch["static_or_dynamic"])
     return queries, ground_truths, predictions, question_types, static_or_dynamic
 
