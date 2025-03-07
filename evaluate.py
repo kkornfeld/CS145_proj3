@@ -26,7 +26,8 @@ def parse_response(resp: str):
 
 def evaluate_predictions(results, eval_model):
     n_miss, n_correct, n_correct_exact = 0, 0, 0
-    queries, ground_truths, predictions, question_types, static_or_dynamic = results["queries"], results["ground_truths"], results["predictions"], results["question_types"], results["static_or_dynamic"]
+    queries, ground_truths, predictions, question_types, static_or_dynamics = results["queries"], results["ground_truths"], results["predictions"], results["question_types"], results["static_or_dynamic"]
+
 
     llm_evaluation_logs = [] # record queries that need llm evaluation
 
@@ -35,7 +36,7 @@ def evaluate_predictions(results, eval_model):
         ground_truth = str(ground_truths[_idx]).strip()
         prediction = prediction.strip()
         question_type = question_types[_idx]
-        static_or_dynamic = static_or_dynamic[_idx]
+        static_or_dynamic = static_or_dynamics[_idx]
 
         ground_truth_lowercase = ground_truth.lower()
         prediction_lowercase = prediction.lower()
