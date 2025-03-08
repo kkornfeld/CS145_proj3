@@ -70,6 +70,8 @@ def evaluate_predictions(results, eval_model):
         eval_res = parse_response(response)
         if eval_res == 1:
             n_correct += 1
+            by_type[question_type]["n_correct"] += 1
+            by_static[static_or_dynamic]["n_correct"] += 1
 
     print(by_type)
     print(by_static)
