@@ -364,7 +364,6 @@ class RAGModel:
 
             **Guidelines for Answering**:
             - If asked about factual topics, respond **only if you are certain**.
-            - If the question involves **numbers, statistics, or sources**, only provide them if **verified**.
             - If a question is **ambiguous**, answer "I don't know" rather than guessing.
 
             **Penalty Avoidance**:
@@ -379,7 +378,7 @@ class RAGModel:
             user_message += f"Current Time: {query_time}\n"
             user_message += f"Question: {query}\n"
             if question_type == "simple" or question_type == "simple_w_condition":
-                user_message += f"NOTE: make your answer as concise as possible, with as little punctuation as possible. It is not necessary to respond in the form of a sentence. Do not include a period at the end of your response. If the answer is a date, format it in YYYY-MM-DD\n"
+                user_message += f"NOTE: Do not include a period at the end of your response.\n"
 
             if self.is_server:
                 # there is no need to wrap the messages into chat when using the server

@@ -73,8 +73,6 @@ def evaluate_predictions(results, eval_model):
             by_type[question_type]["n_correct"] += 1
             by_static[static_or_dynamic]["n_correct"] += 1
 
-    print(by_type)
-    print(by_static)
     n = len(predictions)
     evaluation_results = {
         "score": (2 * n_correct + n_miss) / n - 1,
