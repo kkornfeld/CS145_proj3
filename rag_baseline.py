@@ -37,7 +37,7 @@ SENTENTENCE_TRANSFORMER_BATCH_SIZE = 32 # TUNE THIS VARIABLE depending on the si
 
 MAX_TOKENS_PER_CHUNK = 50
 SLIDING_WINDOW_STEP = 25
-DENSE_COEFFICIENT = 0.1
+DENSE_COEFFICIENT = 0.15
 #### CONFIG PARAMETERS END---
 
 class ChunkExtractor:
@@ -291,7 +291,6 @@ class RAGModel:
             retrieval_results = relevant_chunks[(-hybrid_scores).argsort()[:NUM_CONTEXT_SENTENCES]]
             batch_retrieval_results.append(retrieval_results)
         # Prepare formatted prompts from the LLM        
-        
         formatted_prompts = self.format_prompts(queries, query_times, batch_retrieval_results, batch["question_type"])
 
         # Generate responses via vllm
@@ -373,17 +372,19 @@ class RAGModel:
 
             Respond carefully.
             """
+            # if question_type == "simple" or question_type == "simple_w_condition":
+            #     user_message += f"NOTE: Do not include a period at the end of your response.\n"
+            # elif question_type == "set":
+            #     user_message += f"NOTE: Your response should be a list of items, separated by commas.\n"
+            # elif question_type == "aggregation":
+            #     user_message += f"NOTE: Your response should be a single number.\n"
         
             user_message += f"{references}\n------\n\n"
+            user_message 
             user_message += f"Using only the references listed above, answer the following question: \n"
             user_message += f"Current Time: {query_time}\n"
             user_message += f"Question: {query}\n"
-            if question_type == "simple" or question_type == "simple_w_condition":
-                user_message += f"NOTE: Do not include a period at the end of your response.\n"
-            elif question_type == "set":
-                user_message += f"NOTE: Your response should be a list of items, separated by commas.\n"
-            elif question_type == "aggregation":
-                user_message += f"NOTE: Your response should be a single number.\n"
+
 
             if self.is_server:
                 # there is no need to wrap the messages into chat when using the server
