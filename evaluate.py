@@ -30,6 +30,8 @@ def evaluate_predictions(results, eval_model):
 
 
     llm_evaluation_logs = [] # record queries that need llm evaluation
+    by_type = {}
+    by_static = {}
 
     for _idx, prediction in tqdm(enumerate(predictions), total=len(predictions)):
         query = queries[_idx]
@@ -40,9 +42,6 @@ def evaluate_predictions(results, eval_model):
 
         ground_truth_lowercase = ground_truth.lower()
         prediction_lowercase = prediction.lower()
-        
-        by_type = {}
-        by_static = {}
         
         if question_type not in by_type:
             by_type[question_type] = {"n_correct": 0, "n_miss": 0, "n_correct_exact": 0, "total": 0}
@@ -72,6 +71,8 @@ def evaluate_predictions(results, eval_model):
         if eval_res == 1:
             n_correct += 1
 
+    print(by_type)
+    print(by_static)
     n = len(predictions)
     evaluation_results = {
         "score": (2 * n_correct + n_miss) / n - 1,
