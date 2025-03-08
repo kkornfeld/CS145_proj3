@@ -19,7 +19,7 @@ from tqdm import tqdm
 #### CONFIG PARAMETERS ---
 
 # Define the number of context sentences to consider for generating an answer.
-NUM_CONTEXT_SENTENCES = 25
+NUM_CONTEXT_SENTENCES = 15
 # Set the maximum length for each context sentence (in characters).
 MAX_CONTEXT_SENTENCE_LENGTH = 1000
 # Set the maximum context references length (in characters).
@@ -37,7 +37,7 @@ SENTENTENCE_TRANSFORMER_BATCH_SIZE = 32 # TUNE THIS VARIABLE depending on the si
 
 MAX_TOKENS_PER_CHUNK = 50
 SLIDING_WINDOW_STEP = 25
-DENSE_COEFFICIENT = 0.15
+DENSE_COEFFICIENT = 0.1
 #### CONFIG PARAMETERS END---
 
 class ChunkExtractor:
@@ -364,6 +364,7 @@ class RAGModel:
 
             **Guidelines for Answering**:
             - If asked about factual topics, respond **only if you are certain**.
+            - If the question involves **numbers, statistics, or sources**, only provide them if **verified**.
             - If a question is **ambiguous**, answer "I don't know" rather than guessing.
 
             **Penalty Avoidance**:
@@ -379,6 +380,10 @@ class RAGModel:
             user_message += f"Question: {query}\n"
             if question_type == "simple" or question_type == "simple_w_condition":
                 user_message += f"NOTE: Do not include a period at the end of your response.\n"
+            elif question_type == "set":
+                user_message += f"NOTE: Your response should be a list of items, separated by commas.\n"
+            elif question_type == "aggregation":
+                user_message += f"NOTE: Your response should be a single number.\n"
 
             if self.is_server:
                 # there is no need to wrap the messages into chat when using the server
